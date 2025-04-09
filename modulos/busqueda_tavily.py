@@ -17,10 +17,10 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 def get_info_tavily(topic: str):
     """Searches for information."""
     search = TavilySearchResults(tavily_api_key=TAVILY_API_KEY)
-    res = search.run(f"{topic}")
+    res = search.invoke({"query": topic})
     return res
 
-def lookup(topic: str, my_llm) -> str:
+def lookup(topic: str, my_llm) -> list[dict]:
     
     tools = [
         Tool(
@@ -56,4 +56,4 @@ def lookup(topic: str, my_llm) -> str:
         input={"input": topic}
     )
 
-    return result["output"]
+    return get_info_tavily(topic)

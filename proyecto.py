@@ -1,6 +1,7 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI
 from modulos.busqueda_tavily import lookup
+from modulos.obt_titulo import obtener_titulo
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 import os
 
@@ -21,7 +22,7 @@ for smg in st.session_state.messages[1:]:
     with st.chat_message("user" if isinstance(smg, HumanMessage) else "assistant"):
         st.markdown(smg.content)
 
-if prompt := st.chat_input("Ingresa tu mensaje"):
+if prompt := st.chat_input("Ingresa tu tema de investigacion"):
     user_mg = HumanMessage(content=prompt)
     st.session_state.messages.append(user_mg)
 
@@ -29,12 +30,25 @@ if prompt := st.chat_input("Ingresa tu mensaje"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        message_placeholder = st.empty()
+        #message_placeholder = st.empty()
         with st.spinner("Pensando..."):
             searched_info = lookup(prompt, llm)
-            response = llm(st.session_state.messages)
-        message_placeholder.markdown(response.content)
-        message_placeholder.markdown(searched_info)
+            
+            all_contents = "\n\n".join([item['content'] for item in searched_info])
+            summary_prompt = HumanMessage(content=f"Resume la siguiente información:\n\n{all_contents}")
+            response = llm([summary_prompt])
+            
+        st.markdown("### Resumen")    
+        st.markdown(response.content)
+        st.markdown("### Fuentes de información")
+        
+        for item in searched_info:
+            title = obtener_titulo(item["url"])
+            st.markdown(f"#### {title}")
+            st.markdown(f"[{item['url']}]({item['url']})")
+            snippet = item['content'][:300] + "..." if len(item['content']) > 350 else item['content']
+            st.markdown(f"> {snippet}")
+            st.markdown("---")
+            
 
     st.session_state.messages.append(response)
-    st.session_state.messages.append(searched_info)
