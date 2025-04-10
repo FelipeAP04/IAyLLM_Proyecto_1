@@ -4,6 +4,8 @@ from modulos.busqueda_tavily import lookup
 from modulos.obt_titulo import obtener_titulo
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 import os
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 
 from dotenv import load_dotenv
 
@@ -49,6 +51,13 @@ if prompt := st.chat_input("Ingresa tu tema de investigacion"):
             snippet = item['content'][:300] + "..." if len(item['content']) > 350 else item['content']
             st.markdown(f"> {snippet}")
             st.markdown("---")
-            
+        
+        # Generate WordCloud
+        st.markdown("### Nube de Palabras")
+        wordcloud = WordCloud(width=800, height=400, background_color="white").generate(all_contents)
+        fig, ax = plt.subplots()
+        ax.imshow(wordcloud, interpolation="bilinear")
+        ax.axis("off")
+        st.pyplot(fig)
 
     st.session_state.messages.append(response)
